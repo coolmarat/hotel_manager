@@ -1,0 +1,138 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:7520474012865463895",
+      "lastPropertyId": "11:8371261401441985541",
+      "name": "Booking",
+      "properties": [
+        {
+          "id": "1:8046335281568048978",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1672242544407059752",
+          "name": "uuid",
+          "type": 9,
+          "flags": 2080,
+          "indexId": "1:7669071124941551703"
+        },
+        {
+          "id": "3:9066941738657535107",
+          "name": "checkIn",
+          "type": 10
+        },
+        {
+          "id": "4:6288767746485742327",
+          "name": "checkOut",
+          "type": 10
+        },
+        {
+          "id": "5:3009454904793937401",
+          "name": "guestName",
+          "type": 9
+        },
+        {
+          "id": "6:622805619064539816",
+          "name": "guestPhone",
+          "type": 9
+        },
+        {
+          "id": "7:1629474739835573293",
+          "name": "totalPrice",
+          "type": 8
+        },
+        {
+          "id": "8:4623809133289872343",
+          "name": "amountPaid",
+          "type": 8
+        },
+        {
+          "id": "9:7695883889984232810",
+          "name": "notes",
+          "type": 9
+        },
+        {
+          "id": "10:5486172975866724228",
+          "name": "paymentStatusIndex",
+          "type": 6
+        },
+        {
+          "id": "11:8371261401441985541",
+          "name": "roomId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "2:4990419174667120337",
+          "relationTarget": "Room"
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:4878212268709779404",
+      "lastPropertyId": "8:8949325354581786019",
+      "name": "Room",
+      "properties": [
+        {
+          "id": "1:6856369794337127914",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7099870373196976688",
+          "name": "uuid",
+          "type": 9,
+          "flags": 2080,
+          "indexId": "3:3137801614327634409"
+        },
+        {
+          "id": "3:7554763731269502111",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "4:7042765759100825641",
+          "name": "type",
+          "type": 9
+        },
+        {
+          "id": "5:6300482062653804006",
+          "name": "capacity",
+          "type": 6
+        },
+        {
+          "id": "6:7716817603127183506",
+          "name": "basePrice",
+          "type": 8
+        },
+        {
+          "id": "7:6675029036877619604",
+          "name": "description",
+          "type": 9
+        },
+        {
+          "id": "8:8949325354581786019",
+          "name": "statusIndex",
+          "type": 6
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "2:4878212268709779404",
+  "lastIndexId": "3:3137801614327634409",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}
