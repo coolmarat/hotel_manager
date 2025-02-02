@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../database/objectbox.dart';
 import '../../database/repositories/booking_repository.dart';
 import '../../database/repositories/room_repository.dart';
+import '../../database/repositories/client_repository.dart';
 
 final objectBoxInitializerProvider = FutureProvider<ObjectBox>((ref) async {
   final objectBox = await ObjectBox.create();
@@ -20,4 +21,9 @@ final roomRepositoryProvider = Provider<RoomRepository>((ref) {
 final bookingRepositoryProvider = Provider<BookingRepository>((ref) {
   final objectBox = ref.watch(objectBoxProvider);
   return BookingRepository(objectBox);
+});
+
+final clientRepositoryProvider = Provider<ClientRepository>((ref) {
+  final objectBox = ref.watch(objectBoxProvider);
+  return ClientRepository(objectBox.store);
 });

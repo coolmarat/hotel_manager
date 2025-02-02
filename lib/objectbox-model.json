@@ -122,9 +122,38 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "3:75566934851171950",
+      "lastPropertyId": "4:4277615411837971956",
+      "name": "Client",
+      "properties": [
+        {
+          "id": "1:391442712632263768",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5657262008090333036",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:5743230764565920787",
+          "name": "phone",
+          "type": 9
+        },
+        {
+          "id": "4:4277615411837971956",
+          "name": "notes",
+          "type": 9
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "2:4878212268709779404",
+  "lastEntityId": "3:75566934851171950",
   "lastIndexId": "3:3137801614327634409",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",

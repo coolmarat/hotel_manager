@@ -4,6 +4,10 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:uuid/uuid.dart';
 import '../../../database/models/room.dart';
 import '../../../database/models/booking.dart';
+import '../../../database/models/client.dart';
+import '../../../database/repositories/client_repository.dart';
+import '../../../core/providers/database_provider.dart';
+import '../../clients/presentation/contact_search_screen.dart';
 import '../controllers/room_controller.dart';
 
 class BookRoomScreen extends ConsumerStatefulWidget {
@@ -149,9 +153,26 @@ class _BookRoomScreenState extends ConsumerState<BookRoomScreen> {
                   if (_startDate != null && _endDate != null) ...[
                     TextFormField(
                       controller: _nameController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Имя гостя',
                         border: OutlineInputBorder(),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.search),
+                          onPressed: () async {
+                            final result = await Navigator.push<Client>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ContactSearchScreen(),
+                              ),
+                            );
+                            if (result != null) {
+                              setState(() {
+                                _nameController.text = result.name;
+                                _phoneController.text = result.phone;
+                              });
+                            }
+                          },
+                        ),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -189,7 +210,15 @@ class _BookRoomScreenState extends ConsumerState<BookRoomScreen> {
                       child: ElevatedButton(
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
-                            // TODO: Добавить создание бронирования
+                            // Сохраняем или находим клиента
+                            final clientRepo = ref.read(clientRepositoryProvider);
+                            final client = clientRepo.createOrFind(
+                              _nameController.text,
+                              _phoneController.text,
+                              notes: _notesController.text.isEmpty ? null : _notesController.text,
+                            );
+
+                            // Создаем бронирование
                             final booking = Booking(
                               uuid: _uuid.v4(), // Временное решение для uuid
                               checkIn: _startDate!,

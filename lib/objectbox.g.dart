@@ -15,6 +15,7 @@ import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 import 'database/models/booking.dart';
+import 'database/models/client.dart';
 import 'database/models/room.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
@@ -139,7 +140,36 @@ final _entities = <obx_int.ModelEntity>[
       backlinks: <obx_int.ModelBacklink>[
         obx_int.ModelBacklink(
             name: 'bookings', srcEntity: 'Booking', srcField: 'room')
-      ])
+      ]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(3, 75566934851171950),
+      name: 'Client',
+      lastPropertyId: const obx_int.IdUid(4, 4277615411837971956),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 391442712632263768),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 5657262008090333036),
+            name: 'name',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 5743230764565920787),
+            name: 'phone',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(4, 4277615411837971956),
+            name: 'notes',
+            type: 9,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[])
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -177,7 +207,7 @@ Future<obx.Store> openStore(
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
       entities: _entities,
-      lastEntityId: const obx_int.IdUid(2, 4878212268709779404),
+      lastEntityId: const obx_int.IdUid(3, 75566934851171950),
       lastIndexId: const obx_int.IdUid(3, 3137801614327634409),
       lastRelationId: const obx_int.IdUid(0, 0),
       lastSequenceId: const obx_int.IdUid(0, 0),
@@ -322,6 +352,46 @@ obx_int.ModelDefinition getObjectBoxModel() {
               obx_int.RelInfo<Booking>.toOneBacklink(
                   11, object.id, (Booking srcObject) => srcObject.room));
           return object;
+        }),
+    Client: obx_int.EntityDefinition<Client>(
+        model: _entities[2],
+        toOneRelations: (Client object) => [],
+        toManyRelations: (Client object) => {},
+        getId: (Client object) => object.id,
+        setId: (Client object, int id) {
+          object.id = id;
+        },
+        objectToFB: (Client object, fb.Builder fbb) {
+          final nameOffset = fbb.writeString(object.name);
+          final phoneOffset = fbb.writeString(object.phone);
+          final notesOffset =
+              object.notes == null ? null : fbb.writeString(object.notes!);
+          fbb.startTable(5);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, nameOffset);
+          fbb.addOffset(2, phoneOffset);
+          fbb.addOffset(3, notesOffset);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final idParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+          final nameParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 6, '');
+          final phoneParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 8, '');
+          final notesParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGetNullable(buffer, rootOffset, 10);
+          final object = Client(
+              id: idParam,
+              name: nameParam,
+              phone: phoneParam,
+              notes: notesParam);
+
+          return object;
         })
   };
 
@@ -407,4 +477,23 @@ class Room_ {
 
   /// see [Room.bookings]
   static final bookings = obx.QueryBacklinkToMany<Booking, Room>(Booking_.room);
+}
+
+/// [Client] entity fields to define ObjectBox queries.
+class Client_ {
+  /// See [Client.id].
+  static final id =
+      obx.QueryIntegerProperty<Client>(_entities[2].properties[0]);
+
+  /// See [Client.name].
+  static final name =
+      obx.QueryStringProperty<Client>(_entities[2].properties[1]);
+
+  /// See [Client.phone].
+  static final phone =
+      obx.QueryStringProperty<Client>(_entities[2].properties[2]);
+
+  /// See [Client.notes].
+  static final notes =
+      obx.QueryStringProperty<Client>(_entities[2].properties[3]);
 }
