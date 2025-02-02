@@ -3,9 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:hotel_manager/database/models/room.dart';
 import 'package:hotel_manager/database/models/booking.dart';
 import 'package:intl/intl.dart';
+import '../../bookings/controllers/booking_controller.dart';
 import 'book_room_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class RoomDetailsScreen extends StatelessWidget {
+class RoomDetailsScreen extends ConsumerWidget {
   final Room room;
 
   const RoomDetailsScreen({
@@ -14,7 +16,7 @@ class RoomDetailsScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Комната ${room.name}'),
@@ -63,13 +65,23 @@ class RoomDetailsScreen extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: room.bookings.length,
-              itemBuilder: (context, index) {
-                final booking = room.bookings[index];
-                return BookingCard(booking: booking);
+            child: ref.watch(bookingsProvider).when(
+              data: (bookings) {
+                final roomBookings = bookings.where((booking) {
+                  // Assuming booking has a relation 'room' with a 'uuid' field
+                  return booking.room.target?.uuid == room.uuid;
+                }).toList();
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16.0),
+                  itemCount: roomBookings.length,
+                  itemBuilder: (context, index) {
+                    final booking = roomBookings[index];
+                    return BookingCard(booking: booking);
+                  },
+                );
               },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(child: Text('Error: $error')),
             ),
           ),
         ],
@@ -78,7 +90,7 @@ class RoomDetailsScreen extends StatelessWidget {
   }
 }
 
-class BookingCard extends StatelessWidget {
+class BookingCard extends ConsumerWidget {
   final Booking booking;
 
   const BookingCard({
@@ -87,7 +99,7 @@ class BookingCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final dateFormat = DateFormat('dd.MM.yyyy');
     
     return Card(
@@ -106,9 +118,18 @@ class BookingCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '${dateFormat.format(booking.checkIn)} - ${dateFormat.format(booking.checkOut)}',
-                style: Theme.of(context).textTheme.titleMedium,
+              Row(
+                children: [
+                  Text(
+                    '${dateFormat.format(booking.checkIn)} - ${dateFormat.format(booking.checkOut)}',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    onPressed: () => _showDeleteDialog(context, ref),
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
               Text('Гость: ${booking.guestName}'),
@@ -120,6 +141,31 @@ class BookingCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _showDeleteDialog(BuildContext context, WidgetRef ref) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Удалить бронирование?'),
+          content: const Text('Это действие нельзя отменить'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('ОТМЕНА'),
+            ),
+            TextButton(
+              onPressed: () {
+                ref.read(bookingsProvider.notifier).deleteBooking(booking.uuid);
+                Navigator.of(context).pop();
+              },
+              child: const Text('УДАЛИТЬ', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
     );
   }
 }

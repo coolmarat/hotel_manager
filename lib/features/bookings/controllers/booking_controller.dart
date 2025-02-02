@@ -112,9 +112,9 @@ class BookingController extends StateNotifier<AsyncValue<List<Booking>>> {
     }
   }
 
-  Future<void> deleteBooking(String id) async {
+  Future<void> deleteBooking(String uuid) async {
     try {
-      await _repository.deleteBooking(id);
+      await _repository.deleteBooking(uuid);
       await loadBookings();
     } catch (e) {
       state = AsyncValue.error(e, StackTrace.current);
