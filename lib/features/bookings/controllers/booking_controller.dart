@@ -4,28 +4,27 @@ import '../../../core/providers/database_provider.dart';
 import '../../../database/models/booking.dart';
 import '../../../database/repositories/booking_repository.dart';
 
-final bookingsProvider = StateNotifierProvider<BookingController, AsyncValue<List<Booking>>>((ref) {
+final bookingsProvider = FutureProvider<List<Booking>>((ref) async {
   final repository = ref.watch(bookingRepositoryProvider);
-  return BookingController(repository);
+  return repository.getAllBookings();
 });
 
-class BookingController extends StateNotifier<AsyncValue<List<Booking>>> {
+final roomBookingsProvider = FutureProvider.family<List<Booking>, String>((ref, roomId) async {
+  final repository = ref.watch(bookingRepositoryProvider);
+  return repository.getBookingsByRoomUuid(roomId);
+});
+
+final bookingControllerProvider = Provider((ref) {
+  final repository = ref.watch(bookingRepositoryProvider);
+  return BookingController(repository, ref);
+});
+
+class BookingController {
   final BookingRepository _repository;
+  final Ref _ref;
   final _uuid = const Uuid();
 
-  BookingController(this._repository) : super(const AsyncValue.loading()) {
-    loadBookings();
-  }
-
-  Future<void> loadBookings() async {
-    try {
-      state = const AsyncValue.loading();
-      final bookings = await _repository.getAllBookings();
-      state = AsyncValue.data(bookings);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-    }
-  }
+  BookingController(this._repository, this._ref);
 
   Future<bool> isRoomAvailable(String roomId, DateTime checkIn, DateTime checkOut) async {
     try {
@@ -57,8 +56,14 @@ class BookingController extends StateNotifier<AsyncValue<List<Booking>>> {
         throw Exception('Room is not available for selected dates');
       }
 
+      // Получаем комнату
+      final room = await _ref.read(roomRepositoryProvider).getRoomByUuid(roomId);
+      if (room == null) {
+        throw Exception('Room not found');
+      }
+
       final booking = Booking(
-        id: 0, // ObjectBox will auto-generate the id
+        id: 0,
         uuid: _uuid.v4(),
         checkIn: checkIn,
         checkOut: checkOut,
@@ -74,10 +79,14 @@ class BookingController extends StateNotifier<AsyncValue<List<Booking>>> {
         notes: notes,
       );
       
+      // Устанавливаем связь с комнатой
+      booking.room.target = room;
+      
       await _repository.insertBooking(booking);
-      await loadBookings();
+      // Обновляем данные
+      _ref.invalidate(bookingsProvider);
+      _ref.invalidate(roomBookingsProvider(roomId));
     } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
       rethrow;
     }
   }
@@ -85,16 +94,18 @@ class BookingController extends StateNotifier<AsyncValue<List<Booking>>> {
   Future<void> updateBooking(Booking booking) async {
     try {
       await _repository.updateBooking(booking);
-      await loadBookings();
+      // Обновляем данные
+      _ref.invalidate(bookingsProvider);
+      _ref.invalidate(roomBookingsProvider(booking.room.target?.uuid ?? ''));
     } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
+      rethrow;
     }
   }
 
   Future<void> updatePayment(String bookingId, double newAmountPaid) async {
     try {
-      final currentBookings = state.value ?? [];
-      final bookingToUpdate = currentBookings.firstWhere((booking) => booking.id == bookingId);
+      final bookings = await _repository.getAllBookings();
+      final bookingToUpdate = bookings.firstWhere((booking) => booking.uuid == bookingId);
       
       final updatedBooking = bookingToUpdate.copyWith(
         amountPaid: newAmountPaid,
@@ -106,36 +117,32 @@ class BookingController extends StateNotifier<AsyncValue<List<Booking>>> {
       );
       
       await _repository.updateBooking(updatedBooking);
-      await loadBookings();
+      // Обновляем данные
+      _ref.invalidate(bookingsProvider);
+      _ref.invalidate(roomBookingsProvider(updatedBooking.room.target?.uuid ?? ''));
     } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
+      rethrow;
     }
   }
 
   Future<void> deleteBooking(String uuid) async {
     try {
+      final bookings = await _repository.getAllBookings();
+      final bookingToDelete = bookings.firstWhere((booking) => booking.uuid == uuid);
+      final roomId = bookingToDelete.room.target?.uuid;
+      
       await _repository.deleteBooking(uuid);
-      await loadBookings();
+      // Обновляем данные
+      _ref.invalidate(bookingsProvider);
+      if (roomId != null) {
+        _ref.invalidate(roomBookingsProvider(roomId));
+      }
     } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
+      rethrow;
     }
   }
 
   Future<List<Booking>> getBookingsForPeriod(DateTime start, DateTime end) async {
-    try {
-      return await _repository.getBookingsInPeriod(start, end);
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
-      return [];
-    }
-  }
-
-  Future<List<Booking>> getBookingsForRoom(String roomId) async {
-    try {
-      return await _repository.getBookingsByRoomUuid(roomId);
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
-      return [];
-    }
+    return _repository.getBookingsInPeriod(start, end);
   }
 }

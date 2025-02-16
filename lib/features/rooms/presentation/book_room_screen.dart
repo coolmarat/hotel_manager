@@ -7,6 +7,7 @@ import '../../../database/models/booking.dart';
 import '../../../database/models/client.dart';
 import '../../../database/repositories/client_repository.dart';
 import '../../../core/providers/database_provider.dart';
+import '../../bookings/controllers/booking_controller.dart';
 import '../../clients/presentation/contact_search_screen.dart';
 import '../controllers/room_controller.dart';
 
@@ -208,7 +209,7 @@ class _BookRoomScreenState extends ConsumerState<BookRoomScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           if (_formKey.currentState!.validate()) {
                             // Сохраняем или находим клиента
                             final clientRepo = ref.read(clientRepositoryProvider);
@@ -219,8 +220,8 @@ class _BookRoomScreenState extends ConsumerState<BookRoomScreen> {
                             );
 
                             // Создаем бронирование
-                            final booking = Booking(
-                              uuid: _uuid.v4(), // Временное решение для uuid
+                            await ref.read(bookingControllerProvider).addBooking(
+                              roomId: room.uuid,
                               checkIn: _startDate!,
                               checkOut: _endDate!,
                               guestName: _nameController.text,
@@ -229,10 +230,13 @@ class _BookRoomScreenState extends ConsumerState<BookRoomScreen> {
                               amountPaid: 0,
                               notes: _notesController.text.isEmpty ? null : _notesController.text,
                             );
-                            booking.room.target = room;
                             
-                            ref.read(roomsProvider.notifier).addBooking(booking);
-                            Navigator.of(context).pop();
+                            // Обновляем данные комнаты
+                            ref.invalidate(roomProvider(widget.roomUuid));
+                            
+                            if (mounted) {
+                              Navigator.of(context).pop();
+                            }
                           }
                         },
                         child: const Padding(

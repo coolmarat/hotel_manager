@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hotel_manager/database/models/room.dart';
-import 'package:hotel_manager/database/models/booking.dart';
-import 'package:intl/intl.dart';
-import '../../bookings/controllers/booking_controller.dart';
-import 'book_room_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../../../database/models/booking.dart';
+import '../../../database/models/room.dart';
+import '../../bookings/controllers/booking_controller.dart';
+import '../controllers/room_controller.dart';
+import 'book_room_screen.dart';
 
 class RoomDetailsScreen extends ConsumerWidget {
   final Room room;
@@ -157,9 +158,11 @@ class BookingCard extends ConsumerWidget {
               child: const Text('ОТМЕНА'),
             ),
             TextButton(
-              onPressed: () {
-                ref.read(bookingsProvider.notifier).deleteBooking(booking.uuid);
-                Navigator.of(context).pop();
+              onPressed: () async {
+                await ref.read(bookingControllerProvider).deleteBooking(booking.uuid);
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
               },
               child: const Text('УДАЛИТЬ', style: TextStyle(color: Colors.red)),
             ),
