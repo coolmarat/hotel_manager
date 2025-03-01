@@ -28,12 +28,38 @@ class BookingController {
 
   Future<bool> isRoomAvailable(String roomId, DateTime checkIn, DateTime checkOut) async {
     try {
-      final conflictingBookings = await _repository.getBookingsForRoomInPeriod(
-        roomId,
-        checkIn,
-        checkOut,
-      );
-      return conflictingBookings.isEmpty;
+      // Получаем все бронирования для данной комнаты
+      final roomBookings = await _repository.getBookingsByRoomUuid(roomId);
+      
+      // Проверяем каждое бронирование на пересечение с запрашиваемым периодом
+      for (final booking in roomBookings) {
+        // Если день выезда существующего бронирования совпадает с днем заезда нового
+        // и время выезда (12:00) раньше времени заезда (14:00), то считаем номер доступным
+        if (booking.checkOut.year == checkIn.year &&
+            booking.checkOut.month == checkIn.month &&
+            booking.checkOut.day == checkIn.day &&
+            booking.checkOut.hour <= 12 &&
+            checkIn.hour >= 14) {
+          continue; // Номер доступен в этот день (выезд до заезда)
+        }
+        
+        // Если день заезда существующего бронирования совпадает с днем выезда нового
+        // и время заезда (14:00) позже времени выезда (12:00), то считаем номер доступным
+        if (booking.checkIn.year == checkOut.year &&
+            booking.checkIn.month == checkOut.month &&
+            booking.checkIn.day == checkOut.day &&
+            booking.checkIn.hour >= 14 &&
+            checkOut.hour <= 12) {
+          continue; // Номер доступен в этот день (выезд до заезда)
+        }
+        
+        // Проверяем на пересечение периодов
+        if (checkIn.isBefore(booking.checkOut) && checkOut.isAfter(booking.checkIn)) {
+          return false; // Есть пересечение, номер недоступен
+        }
+      }
+      
+      return true; // Нет пересечений, номер доступен
     } catch (e) {
       return false;
     }
@@ -50,8 +76,26 @@ class BookingController {
     String? notes,
   }) async {
     try {
+      // Устанавливаем время заезда на 14:00
+      final checkInWithTime = DateTime(
+        checkIn.year, 
+        checkIn.month, 
+        checkIn.day, 
+        14, // 14:00 - время заезда
+        0
+      );
+      
+      // Устанавливаем время выезда на 12:00
+      final checkOutWithTime = DateTime(
+        checkOut.year, 
+        checkOut.month, 
+        checkOut.day, 
+        12, // 12:00 - время выезда
+        0
+      );
+      
       // Проверяем доступность номера
-      final isAvailable = await isRoomAvailable(roomId, checkIn, checkOut);
+      final isAvailable = await isRoomAvailable(roomId, checkInWithTime, checkOutWithTime);
       if (!isAvailable) {
         throw Exception('Room is not available for selected dates');
       }
@@ -65,8 +109,8 @@ class BookingController {
       final booking = Booking(
         id: 0,
         uuid: _uuid.v4(),
-        checkIn: checkIn,
-        checkOut: checkOut,
+        checkIn: checkInWithTime,
+        checkOut: checkOutWithTime,
         guestName: guestName,
         guestPhone: guestPhone,
         totalPrice: totalPrice,

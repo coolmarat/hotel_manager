@@ -44,6 +44,23 @@ class _BookRoomScreenState extends ConsumerState<BookRoomScreen> {
   bool _isDateAvailable(DateTime day, List<Booking> bookings) {
     // Проверяем, есть ли пересечения с существующими бронированиями
     for (final booking in bookings) {
+      // Если день равен дню выезда существующего бронирования,
+      // считаем его доступным (выезд в 12:00, заезд в 14:00)
+      if (day.year == booking.checkOut.year && 
+          day.month == booking.checkOut.month && 
+          day.day == booking.checkOut.day) {
+        continue; // День выезда считается свободным для нового бронирования
+      }
+      
+      // Если день равен дню заезда существующего бронирования,
+      // считаем его доступным для выезда нового бронирования
+      if (day.year == booking.checkIn.year && 
+          day.month == booking.checkIn.month && 
+          day.day == booking.checkIn.day) {
+        continue; // День заезда считается свободным для выезда нового бронирования
+      }
+      
+      // Проверяем, находится ли день в диапазоне бронирования
       if (day.isAfter(booking.checkIn.subtract(const Duration(days: 1))) &&
           day.isBefore(booking.checkOut)) {
         return false;

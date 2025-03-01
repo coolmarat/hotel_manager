@@ -51,19 +51,34 @@ class BookingRepository {
     DateTime start,
     DateTime end,
   ) async {
-    final box = _objectBox.bookingBox
-        .query(Booking_.checkIn
-            .between(start.millisecondsSinceEpoch, end.millisecondsSinceEpoch)
-        .or(Booking_.checkOut
-            .between(start.millisecondsSinceEpoch, end.millisecondsSinceEpoch)))
-        ..link(Booking_.room, Room_.uuid.equals(roomUuid));
-
-    try {
-      final query = box.build();
-      return query.find();
-    } finally {
-      // box.close();
-    }
+    // Получаем все бронирования для комнаты
+    final bookings = await getBookingsByRoomUuid(roomUuid);
+    
+    // Фильтруем бронирования, учитывая время заезда и выезда
+    return bookings.where((booking) {
+      // Если день выезда существующего бронирования совпадает с днем заезда нового
+      // и время выезда (12:00) раньше времени заезда (14:00), то считаем номер доступным
+      if (booking.checkOut.year == start.year &&
+          booking.checkOut.month == start.month &&
+          booking.checkOut.day == start.day &&
+          booking.checkOut.hour <= 12 &&
+          start.hour >= 14) {
+        return false; // Нет пересечения
+      }
+      
+      // Если день заезда существующего бронирования совпадает с днем выезда нового
+      // и время заезда (14:00) позже времени выезда (12:00), то считаем номер доступным
+      if (booking.checkIn.year == end.year &&
+          booking.checkIn.month == end.month &&
+          booking.checkIn.day == end.day &&
+          booking.checkIn.hour >= 14 &&
+          end.hour <= 12) {
+        return false; // Нет пересечения
+      }
+      
+      // Проверяем на пересечение периодов
+      return start.isBefore(booking.checkOut) && end.isAfter(booking.checkIn);
+    }).toList();
   }
 
   Future<void> insertBooking(Booking booking) async {
