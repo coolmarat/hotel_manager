@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../../core/localization/strings.dart';
 import '../../../database/models/booking.dart';
 import '../../../database/models/room.dart';
 import '../../bookings/controllers/booking_controller.dart';
+import '../../bookings/presentation/payment_dialog.dart';
 import '../controllers/room_controller.dart';
 import 'book_room_screen.dart';
 
@@ -102,18 +105,12 @@ class BookingCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dateFormat = DateFormat('dd.MM.yyyy');
+    // Получаем локализованный статус оплаты
+    final paymentStatus = Strings.paymentStatuses[booking.paymentStatus.name] ?? booking.paymentStatus.name;
     
     return Card(
       child: InkWell(
-        onTap: () {
-          Clipboard.setData(ClipboardData(text: booking.guestPhone));
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Номер телефона скопирован'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        },
+        onTap: () => _showBookingOptions(context, ref),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -135,7 +132,25 @@ class BookingCard extends ConsumerWidget {
               const SizedBox(height: 8),
               Text('Гость: ${booking.guestName}'),
               Text('Телефон: ${booking.guestPhone}'),
-              Text('Статус оплаты: ${booking.paymentStatus.name}'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('${Strings.totalPrice}: ${booking.totalPrice}'),
+                  Text(
+                    paymentStatus,
+                    style: TextStyle(
+                      color: booking.paymentStatus == PaymentStatus.paid
+                          ? Colors.green
+                          : booking.paymentStatus == PaymentStatus.partiallyPaid
+                              ? Colors.orange
+                              : Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              if (booking.amountPaid > 0)
+                Text('${Strings.amountPaid}: ${booking.amountPaid}'),
               if (booking.notes != null && booking.notes!.isNotEmpty)
                 Text('Заметки: ${booking.notes}'),
             ],
@@ -143,6 +158,59 @@ class BookingCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  void _showBookingOptions(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.phone),
+            title: Text(Strings.callGuest),
+            onTap: () {
+              Navigator.pop(context);
+              _callGuest(context, booking.guestPhone);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.payment),
+            title: Text(Strings.addPayment),
+            onTap: () {
+              Navigator.pop(context);
+              showDialog(
+                context: context,
+                builder: (context) => PaymentDialog(booking: booking),
+              ).then((value) {
+                if (value == true) {
+                  // Обновляем данные после изменения оплаты
+                  ref.invalidate(bookingsProvider);
+                  if (booking.room.target != null) {
+                    ref.invalidate(roomProvider(booking.room.target!.uuid));
+                  }
+                }
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _callGuest(BuildContext context, String phoneNumber) async {
+    final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(phoneUri)) {
+      await launchUrl(phoneUri);
+    } else {
+      // Если не можем позвонить, копируем номер в буфер обмена
+      await Clipboard.setData(ClipboardData(text: phoneNumber));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Номер телефона скопирован в буфер обмена')),
+        );
+      }
+    }
   }
 
   Future<void> _showDeleteDialog(BuildContext context, WidgetRef ref) async {

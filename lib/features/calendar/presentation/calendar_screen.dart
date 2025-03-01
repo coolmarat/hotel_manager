@@ -7,6 +7,7 @@ import '../../../core/localization/strings.dart';
 import '../controllers/calendar_controller.dart';
 import '../widgets/room_status_item.dart';
 import '../models/room_date_status.dart';
+import '../../rooms/presentation/book_room_screen.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
@@ -100,7 +101,48 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: Navigate to booking creation
+          // Если выбрана комната со статусом "свободна", переходим на экран бронирования
+          if (_selectedDay != null) {
+            final roomsAsync = ref.read(roomsForDateProvider(_selectedDay!));
+            roomsAsync.whenData((rooms) {
+              // Находим первую свободную комнату
+              final availableRoom = rooms.firstWhere(
+                (room) => room.status == RoomDateStatus.available,
+                orElse: () => RoomWithStatus(
+                  uuid: '',
+                  name: '',
+                  type: '',
+                  status: RoomDateStatus.available,
+                ),
+              );
+              
+              if (availableRoom.uuid.isNotEmpty) {
+                // Переходим на экран бронирования с предустановленной датой
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => BookRoomScreen(
+                      roomUuid: availableRoom.uuid,
+                      initialCheckIn: _selectedDay,
+                    ),
+                  ),
+                );
+              } else {
+                // Если нет свободных комнат, показываем сообщение
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Нет свободных комнат на выбранную дату'),
+                  ),
+                );
+              }
+            });
+          } else {
+            // Если дата не выбрана, показываем сообщение
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Пожалуйста, выберите дату'),
+              ),
+            );
+          }
         },
         child: const Icon(Icons.add),
       ),

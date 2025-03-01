@@ -17,10 +17,12 @@ import '../../../core/localization/strings.dart';
 
 class BookRoomScreen extends ConsumerStatefulWidget {
   final String roomUuid;
+  final DateTime? initialCheckIn;
 
   const BookRoomScreen({
     super.key,
     required this.roomUuid,
+    this.initialCheckIn,
   });
 
   @override
@@ -36,6 +38,17 @@ class _BookRoomScreenState extends ConsumerState<BookRoomScreen> {
   final _phoneController = TextEditingController();
   final _notesController = TextEditingController();
   final _uuid = const Uuid();
+
+  @override
+  void initState() {
+    super.initState();
+    // Если есть начальная дата заезда, устанавливаем её
+    if (widget.initialCheckIn != null) {
+      _startDate = widget.initialCheckIn;
+      // По умолчанию устанавливаем дату выезда на следующий день
+      _endDate = widget.initialCheckIn!.add(const Duration(days: 1));
+    }
+  }
 
   @override
   void dispose() {

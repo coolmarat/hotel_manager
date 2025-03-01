@@ -151,6 +151,9 @@ class BookingController {
       final bookings = await _repository.getAllBookings();
       final bookingToUpdate = bookings.firstWhere((booking) => booking.uuid == bookingId);
       
+      // Сохраняем ссылку на комнату перед обновлением
+      final roomTarget = bookingToUpdate.room.target;
+      
       final updatedBooking = bookingToUpdate.copyWith(
         amountPaid: newAmountPaid,
         paymentStatus: newAmountPaid >= bookingToUpdate.totalPrice 
@@ -160,10 +163,15 @@ class BookingController {
             : PaymentStatus.unpaid,
       );
       
+      // Восстанавливаем связь с комнатой
+      updatedBooking.room.target = roomTarget;
+      
       await _repository.updateBooking(updatedBooking);
       // Обновляем данные
       _ref.invalidate(bookingsProvider);
-      _ref.invalidate(roomBookingsProvider(updatedBooking.room.target?.uuid ?? ''));
+      if (roomTarget != null) {
+        _ref.invalidate(roomBookingsProvider(roomTarget.uuid));
+      }
     } catch (e) {
       rethrow;
     }
