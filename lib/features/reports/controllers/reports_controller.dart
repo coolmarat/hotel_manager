@@ -1,15 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/database_provider.dart';
-import '../../../database/models/room.dart';
 
 class ReportData {
-  final double occupancyRate;
-  final double dailyRevenue;
-  final double weeklyRevenue;
-  final double monthlyRevenue;
-  final int totalBookings;
-  final int checkInsToday;
-  final int checkOutsToday;
   final DateTime startDate;
   final DateTime endDate;
   final double customPeriodRevenue;
@@ -18,13 +10,6 @@ class ReportData {
   final int customPeriodCheckOutsCount;
 
   ReportData({
-    required this.occupancyRate,
-    required this.dailyRevenue,
-    required this.weeklyRevenue,
-    required this.monthlyRevenue,
-    required this.totalBookings,
-    required this.checkInsToday,
-    required this.checkOutsToday,
     required this.startDate,
     required this.endDate,
     required this.customPeriodRevenue,
@@ -45,7 +30,6 @@ final dateRangeProvider = StateProvider<DateTimeRange>((ref) {
 // Provider for reports data
 final reportsProvider = FutureProvider.autoDispose<ReportData>((ref) async {
   final bookingRepository = ref.watch(bookingRepositoryProvider);
-  final roomRepository = ref.watch(roomRepositoryProvider);
   final dateRange = ref.watch(dateRangeProvider);
 
   final now = DateTime.now();
@@ -53,10 +37,6 @@ final reportsProvider = FutureProvider.autoDispose<ReportData>((ref) async {
   final tomorrow = today.add(const Duration(days: 1));
   final weekAgo = today.subtract(const Duration(days: 7));
   final monthAgo = DateTime(now.year, now.month - 1, now.day);
-
-  // Получаем все комнаты
-  final rooms = await roomRepository.getAllRooms();
-  final totalRooms = rooms.length;
 
   // Получаем все бронирования за разные периоды
   final todayBookings = await bookingRepository.getBookingsInPeriod(today, tomorrow);
@@ -66,10 +46,6 @@ final reportsProvider = FutureProvider.autoDispose<ReportData>((ref) async {
     dateRange.start, 
     dateRange.end.add(const Duration(days: 1)), // Include the end date
   );
-
-  // Считаем занятые комнаты
-  final occupiedRooms = rooms.where((room) => room.status == RoomStatus.occupied).length;
-  final occupancyRate = totalRooms > 0 ? occupiedRooms / totalRooms : 0.0;
 
   // Считаем выручку
   final dailyRevenue = todayBookings.fold<double>(
@@ -119,13 +95,6 @@ final reportsProvider = FutureProvider.autoDispose<ReportData>((ref) async {
   }).length;
 
   return ReportData(
-    occupancyRate: occupancyRate,
-    dailyRevenue: dailyRevenue,
-    weeklyRevenue: weeklyRevenue,
-    monthlyRevenue: monthlyRevenue,
-    totalBookings: todayBookings.length,
-    checkInsToday: checkInsToday,
-    checkOutsToday: checkOutsToday,
     startDate: dateRange.start,
     endDate: dateRange.end,
     customPeriodRevenue: customPeriodRevenue,

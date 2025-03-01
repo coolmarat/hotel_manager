@@ -73,6 +73,7 @@ class Strings {
   // Экран отчетов
   static const reports = 'Отчеты';
   static const occupancyRate = 'Загрузка отеля';
+  static const hotelLoading = 'Текущая загрузка';
   static const revenue = 'Выручка';
   static const daily = 'За день';
   static const weekly = 'За неделю';

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/providers/database_provider.dart';
 import 'database/objectbox.dart';
 import 'features/home/presentation/home_screen.dart';
@@ -55,6 +56,16 @@ class MyApp extends StatelessWidget {
       ),
       themeMode: ThemeMode.system,
       home: const HomeScreen(),
+      locale: const Locale('ru', 'RU'),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('ru', 'RU'),
+        Locale('en', 'US'),
+      ],
     );
   }
 }
