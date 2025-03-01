@@ -55,6 +55,13 @@ class Strings {
   static const notes = 'Заметки';
   static const notesHint = 'Дополнительная информация';
   static const calendar = 'Календарь';
+  static const callGuest = 'Позвонить клиенту';
+  static const addPayment = 'Указать оплату';
+  static const enterPaymentAmount = 'Введите сумму оплаты';
+  static const payment = 'Оплата';
+  static const paymentAmount = 'Сумма оплаты';
+  static const paymentAmountHint = 'Введите сумму оплаты';
+  static const remainingAmount = 'Осталось оплатить';
   
   // Статусы оплаты
   static const paymentStatuses = {
@@ -75,6 +82,14 @@ class Strings {
   static const checkInsToday = 'Заездов сегодня';
   static const checkOutsToday = 'Выездов сегодня';
   static const roomsOccupied = 'комнат занято';
+  static const selectedPeriod = 'Выбранный период';
+  static const changePeriod = 'Изменить';
+  static const revenueForPeriod = 'Выручка за период';
+  static const periodStatistics = 'Статистика за выбранный период';
+  static const totalBookingsInPeriod = 'Всего бронирований:';
+  static const checkInsInPeriod = 'Заездов:';
+  static const checkOutsInPeriod = 'Выездов:';
+  static const totalRevenueInPeriod = 'Общая выручка:';
   
   // Валидация
   static const required = 'Обязательное поле';

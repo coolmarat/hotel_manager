@@ -10,6 +10,12 @@ class ReportData {
   final int totalBookings;
   final int checkInsToday;
   final int checkOutsToday;
+  final DateTime startDate;
+  final DateTime endDate;
+  final double customPeriodRevenue;
+  final int customPeriodBookingsCount;
+  final int customPeriodCheckInsCount;
+  final int customPeriodCheckOutsCount;
 
   ReportData({
     required this.occupancyRate,
@@ -19,12 +25,28 @@ class ReportData {
     required this.totalBookings,
     required this.checkInsToday,
     required this.checkOutsToday,
+    required this.startDate,
+    required this.endDate,
+    required this.customPeriodRevenue,
+    required this.customPeriodBookingsCount,
+    required this.customPeriodCheckInsCount,
+    required this.customPeriodCheckOutsCount,
   });
 }
 
+// Provider to store the selected date range
+final dateRangeProvider = StateProvider<DateTimeRange>((ref) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final tomorrow = today.add(const Duration(days: 1));
+  return DateTimeRange(start: today, end: tomorrow);
+});
+
+// Provider for reports data
 final reportsProvider = FutureProvider.autoDispose<ReportData>((ref) async {
   final bookingRepository = ref.watch(bookingRepositoryProvider);
   final roomRepository = ref.watch(roomRepositoryProvider);
+  final dateRange = ref.watch(dateRangeProvider);
 
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
@@ -40,6 +62,10 @@ final reportsProvider = FutureProvider.autoDispose<ReportData>((ref) async {
   final todayBookings = await bookingRepository.getBookingsInPeriod(today, tomorrow);
   final weeklyBookings = await bookingRepository.getBookingsInPeriod(weekAgo, tomorrow);
   final monthlyBookings = await bookingRepository.getBookingsInPeriod(monthAgo, tomorrow);
+  final customPeriodBookings = await bookingRepository.getBookingsInPeriod(
+    dateRange.start, 
+    dateRange.end.add(const Duration(days: 1)), // Include the end date
+  );
 
   // Считаем занятые комнаты
   final occupiedRooms = rooms.where((room) => room.status == RoomStatus.occupied).length;
@@ -60,6 +86,11 @@ final reportsProvider = FutureProvider.autoDispose<ReportData>((ref) async {
     0,
     (sum, booking) => sum + booking.amountPaid,
   );
+  
+  final customPeriodRevenue = customPeriodBookings.fold<double>(
+    0,
+    (sum, booking) => sum + booking.amountPaid,
+  );
 
   // Считаем количество заездов и выездов сегодня
   final checkInsToday = todayBookings.where((booking) => 
@@ -73,6 +104,19 @@ final reportsProvider = FutureProvider.autoDispose<ReportData>((ref) async {
     booking.checkOut.month == today.month &&
     booking.checkOut.day == today.day
   ).length;
+  
+  // Считаем количество заездов и выездов в выбранный период
+  final customPeriodCheckInsCount = customPeriodBookings.where((booking) {
+    final checkInDate = DateTime(booking.checkIn.year, booking.checkIn.month, booking.checkIn.day);
+    return checkInDate.isAfter(dateRange.start.subtract(const Duration(days: 1))) && 
+           checkInDate.isBefore(dateRange.end.add(const Duration(days: 1)));
+  }).length;
+  
+  final customPeriodCheckOutsCount = customPeriodBookings.where((booking) {
+    final checkOutDate = DateTime(booking.checkOut.year, booking.checkOut.month, booking.checkOut.day);
+    return checkOutDate.isAfter(dateRange.start.subtract(const Duration(days: 1))) && 
+           checkOutDate.isBefore(dateRange.end.add(const Duration(days: 1)));
+  }).length;
 
   return ReportData(
     occupancyRate: occupancyRate,
@@ -82,5 +126,18 @@ final reportsProvider = FutureProvider.autoDispose<ReportData>((ref) async {
     totalBookings: todayBookings.length,
     checkInsToday: checkInsToday,
     checkOutsToday: checkOutsToday,
+    startDate: dateRange.start,
+    endDate: dateRange.end,
+    customPeriodRevenue: customPeriodRevenue,
+    customPeriodBookingsCount: customPeriodBookings.length,
+    customPeriodCheckInsCount: customPeriodCheckInsCount,
+    customPeriodCheckOutsCount: customPeriodCheckOutsCount,
   );
 });
+
+class DateTimeRange {
+  final DateTime start;
+  final DateTime end;
+
+  const DateTimeRange({required this.start, required this.end});
+}

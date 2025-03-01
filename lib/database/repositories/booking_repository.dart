@@ -33,17 +33,32 @@ class BookingRepository {
   }
 
   Future<List<Booking>> getBookingsInPeriod(DateTime start, DateTime end) async {
-    final query = _objectBox.bookingBox
-        .query(Booking_.checkIn
-            .between(start.millisecondsSinceEpoch, end.millisecondsSinceEpoch)
-        .or(Booking_.checkOut
-            .between(start.millisecondsSinceEpoch, end.millisecondsSinceEpoch)))
-        .build();
-    try {
-      return query.find();
-    } finally {
-      query.close();
-    }
+    // Получаем все бронирования
+    final allBookings = await getAllBookings();
+    
+    // Фильтруем бронирования, которые пересекаются с указанным периодом
+    return allBookings.where((booking) {
+      // Бронирование пересекается с периодом, если:
+      // 1. Дата заезда находится в периоде
+      // 2. Дата выезда находится в периоде
+      // 3. Период полностью внутри бронирования (заезд до начала периода, выезд после конца периода)
+      
+      final checkInInPeriod = booking.checkIn.isAfter(start) && booking.checkIn.isBefore(end);
+      final checkOutInPeriod = booking.checkOut.isAfter(start) && booking.checkOut.isBefore(end);
+      final periodInsideBooking = booking.checkIn.isBefore(start) && booking.checkOut.isAfter(end);
+      
+      // Также учитываем случаи, когда даты совпадают
+      final checkInEqualsStart = booking.checkIn.year == start.year && 
+                                booking.checkIn.month == start.month && 
+                                booking.checkIn.day == start.day;
+                                
+      final checkOutEqualsEnd = booking.checkOut.year == end.year && 
+                               booking.checkOut.month == end.month && 
+                               booking.checkOut.day == end.day;
+      
+      return checkInInPeriod || checkOutInPeriod || periodInsideBooking || 
+             checkInEqualsStart || checkOutEqualsEnd;
+    }).toList();
   }
 
   Future<List<Booking>> getBookingsForRoomInPeriod(

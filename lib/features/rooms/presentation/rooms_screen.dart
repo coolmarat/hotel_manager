@@ -17,26 +17,6 @@ class RoomsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text(Strings.rooms),
         actions: [
-          PopupMenuButton<RoomStatus>(
-            icon: const Icon(Icons.filter_list),
-            onSelected: (RoomStatus status) {
-              // TODO: Implement filter
-            },
-            itemBuilder: (BuildContext context) {
-              return [
-                const PopupMenuItem(
-                  value: null,
-                  child: Text(Strings.allRooms),
-                ),
-                ...RoomStatus.values.map((status) {
-                  return PopupMenuItem(
-                    value: status,
-                    child: Text(Strings.roomStatuses[status.name] ?? status.name),
-                  );
-                }),
-              ];
-            },
-          ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
@@ -106,25 +86,14 @@ class RoomsScreen extends ConsumerWidget {
                   ),
                   title: Text(room.name),
                   subtitle: Text('${room.type} - ${room.capacity} ${Strings.guests}'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Chip(
-                        label: Text(
-                          Strings.roomStatuses[room.status.name] ?? room.status.name,
-                        ),
-                        backgroundColor: _getStatusColor(room.status).withOpacity(0.2),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => AddEditRoomDialog(room: room),
-                          );
-                        },
-                      ),
-                    ],
+                  trailing: IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AddEditRoomDialog(room: room),
+                      );
+                    },
                   ),
                   onTap: () {
                     Navigator.of(context).push(
