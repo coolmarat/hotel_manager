@@ -21,11 +21,13 @@ class _PaymentDialogState extends ConsumerState<PaymentDialog> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
   double _remainingAmount = 0;
+  PaymentStatus _currentStatus = PaymentStatus.unpaid;
 
   @override
   void initState() {
     super.initState();
     _amountController.text = widget.booking.amountPaid.toString();
+    _currentStatus = widget.booking.paymentStatus;
     _calculateRemainingAmount();
   }
 
@@ -40,6 +42,15 @@ class _PaymentDialogState extends ConsumerState<PaymentDialog> {
       final amountPaid = double.tryParse(_amountController.text) ?? 0;
       _remainingAmount = widget.booking.totalPrice - amountPaid;
       if (_remainingAmount < 0) _remainingAmount = 0;
+      
+      // Обновляем статус оплаты
+      if (amountPaid >= widget.booking.totalPrice) {
+        _currentStatus = PaymentStatus.paid;
+      } else if (amountPaid > 0) {
+        _currentStatus = PaymentStatus.partiallyPaid;
+      } else {
+        _currentStatus = PaymentStatus.unpaid;
+      }
     });
   }
 
@@ -87,6 +98,23 @@ class _PaymentDialogState extends ConsumerState<PaymentDialog> {
                 color: _remainingAmount > 0 ? Colors.red : Colors.green,
                 fontWeight: FontWeight.bold,
               ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Text('${Strings.paymentStatus}: '),
+                Text(
+                  Strings.paymentStatuses[_currentStatus.name] ?? _currentStatus.name,
+                  style: TextStyle(
+                    color: _currentStatus == PaymentStatus.paid
+                        ? Colors.green
+                        : _currentStatus == PaymentStatus.partiallyPaid
+                            ? Colors.orange
+                            : Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

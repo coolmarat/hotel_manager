@@ -106,6 +106,16 @@ class BookingController {
         throw Exception('Room not found');
       }
 
+      // Определяем статус оплаты
+      PaymentStatus paymentStatus;
+      if (amountPaid >= totalPrice) {
+        paymentStatus = PaymentStatus.paid;
+      } else if (amountPaid > 0) {
+        paymentStatus = PaymentStatus.partiallyPaid;
+      } else {
+        paymentStatus = PaymentStatus.unpaid;
+      }
+
       final booking = Booking(
         id: 0,
         uuid: _uuid.v4(),
@@ -115,11 +125,7 @@ class BookingController {
         guestPhone: guestPhone,
         totalPrice: totalPrice,
         amountPaid: amountPaid,
-        paymentStatus: amountPaid >= totalPrice 
-          ? PaymentStatus.paid
-          : amountPaid > 0 
-            ? PaymentStatus.partiallyPaid 
-            : PaymentStatus.unpaid,
+        paymentStatus: paymentStatus,
         notes: notes,
       );
       
@@ -154,17 +160,26 @@ class BookingController {
       // Сохраняем ссылку на комнату перед обновлением
       final roomTarget = bookingToUpdate.room.target;
       
+      // Определяем статус оплаты
+      PaymentStatus newStatus;
+      if (newAmountPaid >= bookingToUpdate.totalPrice) {
+        newStatus = PaymentStatus.paid;
+      } else if (newAmountPaid > 0) {
+        newStatus = PaymentStatus.partiallyPaid;
+      } else {
+        newStatus = PaymentStatus.unpaid;
+      }
+      
       final updatedBooking = bookingToUpdate.copyWith(
         amountPaid: newAmountPaid,
-        paymentStatus: newAmountPaid >= bookingToUpdate.totalPrice 
-          ? PaymentStatus.paid
-          : newAmountPaid > 0 
-            ? PaymentStatus.partiallyPaid 
-            : PaymentStatus.unpaid,
+        paymentStatus: newStatus,
       );
       
       // Восстанавливаем связь с комнатой
       updatedBooking.room.target = roomTarget;
+      
+      // Убедимся, что статус оплаты установлен правильно
+      updatedBooking.paymentStatus = newStatus;
       
       await _repository.updateBooking(updatedBooking);
       // Обновляем данные

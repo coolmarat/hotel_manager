@@ -30,7 +30,13 @@ class Booking {
   @Transient()
   PaymentStatus _paymentStatus = PaymentStatus.unpaid;
 
-  PaymentStatus get paymentStatus => _paymentStatus;
+  PaymentStatus get paymentStatus {
+    // Инициализируем статус оплаты при первом обращении к геттеру
+    if (_paymentStatus == PaymentStatus.unpaid && paymentStatusIndex > 0) {
+      _initPaymentStatus();
+    }
+    return _paymentStatus;
+  }
   
   set paymentStatus(PaymentStatus value) {
     _paymentStatus = value;
@@ -55,6 +61,16 @@ class Booking {
     PaymentStatus paymentStatus = PaymentStatus.unpaid,
   }) {
     this.paymentStatus = paymentStatus;
+    _initPaymentStatus();
+  }
+
+  /// Инициализирует статус оплаты из индекса
+  void _initPaymentStatus() {
+    if (paymentStatusIndex >= 0 && paymentStatusIndex < PaymentStatus.values.length) {
+      _paymentStatus = PaymentStatus.values[paymentStatusIndex];
+    } else {
+      _paymentStatus = PaymentStatus.unpaid;
+    }
   }
 
   Booking copyWith({

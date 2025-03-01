@@ -62,6 +62,7 @@ class Strings {
   static const paymentAmount = 'Сумма оплаты';
   static const paymentAmountHint = 'Введите сумму оплаты';
   static const remainingAmount = 'Осталось оплатить';
+  static const paymentStatus = 'Статус оплаты';
   
   // Статусы оплаты
   static const paymentStatuses = {
