@@ -1,6 +1,7 @@
 import '../models/client.dart';
 import '../objectbox.dart';
 import 'package:objectbox/objectbox.dart';
+import '../../objectbox.g.dart';
 
 class ClientRepository {
   final Store _store;
@@ -8,6 +9,24 @@ class ClientRepository {
 
   ClientRepository(this._store) {
     _box = _store.box<Client>();
+  }
+
+  Future<List<Client>> getAllClients() async {
+    return _box.getAll();
+  }
+
+  Future<Client?> getClientByPhone(String phone) async {
+    final cleanPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
+    
+    // Получаем всех клиентов и ищем по номеру телефона
+    final clients = _box.getAll();
+    try {
+      return clients.firstWhere(
+        (client) => client.cleanPhone.contains(cleanPhone),
+      );
+    } catch (e) {
+      return null;
+    }
   }
 
   Client findByPhone(String phone) {
@@ -59,5 +78,15 @@ class ClientRepository {
              client.phone.contains(cleanQuery) ||
              client.cleanPhone.contains(cleanQuery);
     }).toList();
+  }
+  
+  /// Добавляет несколько клиентов в базу данных
+  Future<void> addClients(List<Client> clients) async {
+    _box.putMany(clients);
+  }
+  
+  /// Удаляет всех клиентов из базу данных
+  Future<void> deleteAllClients() async {
+    _box.removeAll();
   }
 }

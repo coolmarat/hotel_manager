@@ -115,4 +115,14 @@ class BookingRepository {
       query.close();
     }
   }
+  
+  /// Добавляет несколько бронирований в базу данных
+  Future<void> addBookings(List<Booking> bookings) async {
+    _objectBox.bookingBox.putMany(bookings);
+  }
+  
+  /// Удаляет все бронирования из базы данных
+  Future<void> deleteAllBookings() async {
+    _objectBox.bookingBox.removeAll();
+  }
 }

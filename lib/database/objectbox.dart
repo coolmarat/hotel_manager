@@ -16,11 +16,12 @@ class ObjectBox {
 
     // Add initial data if the database is empty
     if (roomBox.isEmpty()) {
-      _addInitialData();
+      addInitialData();
     }
   }
 
-  void _addInitialData() {
+  /// Добавляет начальные данные в базу данных (стандартные комнаты)
+  Future<void> addInitialData() async {
     // Add some sample rooms
     final rooms = [
       Room(

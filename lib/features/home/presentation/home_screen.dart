@@ -3,6 +3,7 @@ import 'package:hotel_manager/core/localization/strings.dart';
 import 'package:hotel_manager/features/calendar/presentation/calendar_screen.dart';
 import 'package:hotel_manager/features/reports/presentation/reports_screen.dart';
 import 'package:hotel_manager/features/rooms/presentation/rooms_screen.dart';
+import 'package:hotel_manager/features/database/presentation/database_management_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,6 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
     RoomsScreen(),
     CalendarScreen(),
     ReportsScreen(),
+    DatabaseManagementScreen(),
   ];
 
   final List<NavigationDestination> _destinations = const [
@@ -32,6 +34,10 @@ class _HomeScreenState extends State<HomeScreen> {
     NavigationDestination(
       icon: Icon(Icons.bar_chart),
       label: Strings.reports,
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.storage),
+      label: 'База данных',
     ),
   ];
 

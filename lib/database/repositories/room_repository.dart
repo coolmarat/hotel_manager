@@ -53,4 +53,14 @@ class RoomRepository {
   Future<void> addBooking(Booking booking) async {
     _objectBox.bookingBox.put(booking);
   }
+  
+  /// Добавляет несколько комнат в базу данных
+  Future<void> addRooms(List<Room> rooms) async {
+    _objectBox.roomBox.putMany(rooms);
+  }
+  
+  /// Удаляет все комнаты из базы данных
+  Future<void> deleteAllRooms() async {
+    _objectBox.roomBox.removeAll();
+  }
 }
