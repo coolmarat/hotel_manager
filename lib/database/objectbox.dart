@@ -13,14 +13,11 @@ class ObjectBox {
   ObjectBox._create(this.store) {
     roomBox = Box<Room>(store);
     bookingBox = Box<Booking>(store);
-
-    // Add initial data if the database is empty
-    if (roomBox.isEmpty()) {
-      addInitialData();
-    }
+    // No automatic initialization of data
   }
 
   /// Добавляет начальные данные в базу данных (стандартные комнаты)
+  /// Эта функция должна вызываться явно, только когда пользователь хочет добавить начальные данные
   Future<void> addInitialData() async {
     // Add some sample rooms
     final rooms = [

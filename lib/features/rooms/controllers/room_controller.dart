@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+import '../../../core/providers/database_events_provider.dart';
 import '../../../core/providers/database_provider.dart';
 import '../../../database/models/room.dart';
 import '../../../database/repositories/room_repository.dart';
@@ -7,7 +8,21 @@ import '../../../database/models/booking.dart'; // Assuming Booking model is def
 
 final roomsProvider = StateNotifierProvider<RoomController, AsyncValue<List<Room>>>((ref) {
   final repository = ref.watch(roomRepositoryProvider);
-  return RoomController(repository);
+  final controller = RoomController(repository);
+  
+  // Подписываемся на события базы данных
+  final subscription = ref.listen<DatabaseEvent?>(databaseEventProvider, (previous, next) {
+    if (next != null) {
+      // Перезагружаем комнаты при любом событии базы данных
+      controller.loadRooms();
+    }
+  });
+  
+  ref.onDispose(() {
+    subscription.close();
+  });
+  
+  return controller;
 });
 
 final roomProvider = FutureProvider.family<Room?, String>((ref, uuid) async {

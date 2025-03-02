@@ -232,13 +232,20 @@ class DatabaseExportRepository {
     }
   }
 
-  /// Очищает все данные и восстанавливает начальные данные
+  /// Очищает все данные и добавляет примеры комнат
   Future<bool> resetToInitialData() async {
     try {
       // Очищаем базу данных
-      await clearAllData();
+      // Удаляем все бронирования
+      await _bookingRepository.deleteAllBookings();
+
+      // Удаляем всех клиентов
+      await _clientRepository.deleteAllClients();
+
+      // Удаляем все комнаты
+      await _roomRepository.deleteAllRooms();
       
-      // Добавляем начальные данные
+      // Добавляем примеры комнат
       await _objectBox.addInitialData();
       
       return true;

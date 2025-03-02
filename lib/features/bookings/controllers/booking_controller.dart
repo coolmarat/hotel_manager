@@ -1,16 +1,35 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+import '../../../core/providers/database_events_provider.dart';
 import '../../../core/providers/database_provider.dart';
 import '../../../database/models/booking.dart';
 import '../../../database/repositories/booking_repository.dart';
 
-final bookingsProvider = FutureProvider<List<Booking>>((ref) async {
+final bookingsProvider = FutureProvider.autoDispose<List<Booking>>((ref) async {
   final repository = ref.watch(bookingRepositoryProvider);
+  
+  // Подписываемся на события базы данных
+  ref.listen<DatabaseEvent?>(databaseEventProvider, (previous, next) {
+    if (next != null) {
+      // Инвалидируем кэш при любом событии базы данных
+      ref.invalidateSelf();
+    }
+  });
+  
   return repository.getAllBookings();
 });
 
-final roomBookingsProvider = FutureProvider.family<List<Booking>, String>((ref, roomId) async {
+final roomBookingsProvider = FutureProvider.family.autoDispose<List<Booking>, String>((ref, roomId) async {
   final repository = ref.watch(bookingRepositoryProvider);
+  
+  // Подписываемся на события базы данных
+  ref.listen<DatabaseEvent?>(databaseEventProvider, (previous, next) {
+    if (next != null) {
+      // Инвалидируем кэш при любом событии базы данных
+      ref.invalidateSelf();
+    }
+  });
+  
   return repository.getBookingsByRoomUuid(roomId);
 });
 

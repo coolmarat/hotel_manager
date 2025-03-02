@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hotel_manager/core/providers/database_events_provider.dart';
 import 'package:hotel_manager/core/providers/database_provider.dart';
 import 'package:hotel_manager/features/database/repositories/database_export_repository.dart';
 
@@ -48,16 +49,20 @@ final databaseManagementControllerProvider =
     StateNotifierProvider<DatabaseManagementController, DatabaseManagementState>(
   (ref) => DatabaseManagementController(
     exportRepository: ref.watch(databaseExportRepositoryProvider),
+    ref: ref,
   ),
 );
 
 /// Контроллер управления базой данных
 class DatabaseManagementController extends StateNotifier<DatabaseManagementState> {
   final DatabaseExportRepository _exportRepository;
+  final Ref _ref;
 
   DatabaseManagementController({
     required DatabaseExportRepository exportRepository,
+    required Ref ref,
   })  : _exportRepository = exportRepository,
+        _ref = ref,
         super(DatabaseManagementState());
 
   /// Экспортирует базу данных в файл
@@ -106,6 +111,9 @@ class DatabaseManagementController extends StateNotifier<DatabaseManagementState
           isLoading: false,
           successMessage: 'База данных успешно импортирована',
         );
+        
+        // Отправляем событие об импорте данных
+        _ref.read(databaseEventProvider.notifier).state = DatabaseEvent(DatabaseEventType.imported);
       } else {
         state = state.copyWith(
           isLoading: false,
@@ -133,6 +141,9 @@ class DatabaseManagementController extends StateNotifier<DatabaseManagementState
           isLoading: false,
           successMessage: 'База данных успешно очищена',
         );
+        
+        // Отправляем событие об очистке базы данных
+        _ref.read(databaseEventProvider.notifier).state = DatabaseEvent(DatabaseEventType.cleared);
       } else {
         state = state.copyWith(
           isLoading: false,
@@ -147,7 +158,7 @@ class DatabaseManagementController extends StateNotifier<DatabaseManagementState
     }
   }
 
-  /// Сбрасывает базу данных к начальному состоянию
+  /// Очищает базу данных и добавляет примеры комнат
   Future<void> resetDatabase(BuildContext context) async {
     state = state.copyWith(isLoading: true, errorMessage: null, successMessage: null);
     
@@ -157,18 +168,21 @@ class DatabaseManagementController extends StateNotifier<DatabaseManagementState
       if (result) {
         state = state.copyWith(
           isLoading: false,
-          successMessage: 'База данных успешно сброшена',
+          successMessage: 'Примеры комнат успешно добавлены',
         );
+        
+        // Отправляем событие о сбросе базы данных
+        _ref.read(databaseEventProvider.notifier).state = DatabaseEvent(DatabaseEventType.reset);
       } else {
         state = state.copyWith(
           isLoading: false,
-          errorMessage: 'Не удалось сбросить базу данных',
+          errorMessage: 'Не удалось добавить примеры комнат',
         );
       }
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Ошибка при сбросе базы данных: $e',
+        errorMessage: 'Ошибка при добавлении примеров комнат: $e',
       );
     }
   }

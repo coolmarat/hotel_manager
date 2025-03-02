@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/providers/database_events_provider.dart';
 import '../../../core/providers/database_provider.dart';
 
 class ReportData {
@@ -31,6 +32,14 @@ final dateRangeProvider = StateProvider<DateTimeRange>((ref) {
 final reportsProvider = FutureProvider.autoDispose<ReportData>((ref) async {
   final bookingRepository = ref.watch(bookingRepositoryProvider);
   final dateRange = ref.watch(dateRangeProvider);
+  
+  // Подписываемся на события базы данных
+  ref.listen<DatabaseEvent?>(databaseEventProvider, (previous, next) {
+    if (next != null) {
+      // Инвалидируем кэш при любом событии базы данных
+      ref.invalidateSelf();
+    }
+  });
 
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);

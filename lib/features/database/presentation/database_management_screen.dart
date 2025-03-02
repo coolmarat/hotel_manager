@@ -93,15 +93,15 @@ class _DatabaseManagementScreenState extends ConsumerState<DatabaseManagementScr
                   onTap: () => _showClearDatabaseConfirmationDialog(context, controller),
                   color: Colors.red,
                 ),
-                const SizedBox(height: 16),
-                _buildFeatureCard(
-                  context,
-                  title: 'Сбросить базу данных к начальному состоянию',
-                  description: 'Очистить базу данных и добавить стандартные комнаты.',
-                  icon: Icons.restart_alt,
-                  onTap: () => _showResetDatabaseConfirmationDialog(context, controller),
-                  color: Colors.orange,
-                ),
+                // const SizedBox(height: 16),
+                // _buildFeatureCard(
+                //   context,
+                //   title: 'Сбросить базу данных к начальному состоянию',
+                //   description: 'Очистить базу данных и добавить стандартные комнаты.',
+                //   icon: Icons.restart_alt,
+                //   onTap: () => _showResetDatabaseConfirmationDialog(context, controller),
+                //   color: Colors.orange,
+                // ),
                 const SizedBox(height: 32),
                 const Text(
                   'Формат данных',
@@ -234,7 +234,6 @@ class _DatabaseManagementScreenState extends ConsumerState<DatabaseManagementScr
         title: const Text('Подтверждение очистки'),
         content: const Text(
           'Очистка базы данных удалит все бронирования, клиентов и комнаты. '
-          'Будут созданы только стандартные комнаты. '
           'Этот процесс нельзя отменить. Вы уверены, что хотите продолжить?',
         ),
         actions: [
@@ -264,9 +263,10 @@ class _DatabaseManagementScreenState extends ConsumerState<DatabaseManagementScr
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Подтверждение сброса'),
+        title: const Text('Добавление примеров комнат'),
         content: const Text(
-          'Сброс базы данных к начальному состоянию удалит все текущие данные и добавит стандартные комнаты. '
+          'Эта операция очистит базу данных и добавит примеры комнат. '
+          'Все текущие данные будут удалены. '
           'Этот процесс нельзя отменить. Вы уверены, что хотите продолжить?',
         ),
         actions: [
@@ -282,7 +282,7 @@ class _DatabaseManagementScreenState extends ConsumerState<DatabaseManagementScr
               Navigator.of(context).pop();
               controller.resetDatabase(context);
             },
-            child: const Text('Сбросить'),
+            child: const Text('Добавить примеры'),
           ),
         ],
       ),

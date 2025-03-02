@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/providers/database_events_provider.dart';
 import '../../../core/providers/database_provider.dart';
 import '../../../database/models/booking.dart';
 import '../../../database/models/room.dart';
@@ -10,8 +11,17 @@ final calendarControllerProvider = Provider((ref) {
   return CalendarController(bookingRepository, roomRepository);
 });
 
-final roomsForDateProvider = FutureProvider.family<List<RoomWithStatus>, DateTime>((ref, date) async {
+final roomsForDateProvider = FutureProvider.family.autoDispose<List<RoomWithStatus>, DateTime>((ref, date) async {
   final controller = ref.watch(calendarControllerProvider);
+  
+  // Подписываемся на события базы данных
+  ref.listen<DatabaseEvent?>(databaseEventProvider, (previous, next) {
+    if (next != null) {
+      // Инвалидируем кэш при любом событии базы данных
+      ref.invalidateSelf();
+    }
+  });
+  
   return controller.getRoomsWithStatusForDate(date);
 });
 

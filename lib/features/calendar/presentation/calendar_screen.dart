@@ -45,14 +45,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(Strings.calendar),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {
-              // TODO: Implement filter
-            },
-          ),
-        ],
       ),
       body: Column(
         children: [
