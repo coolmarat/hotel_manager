@@ -93,6 +93,10 @@ class Strings {
   static const checkOutsInPeriod = 'Выездов:';
   static const totalRevenueInPeriod = 'Общая выручка:';
   
+  // Фильтрация бронирований
+  static const showCurrentBookings = 'Текущие и будущие';
+  static const showAllBookings = 'Все бронирования';
+  
   // Валидация
   static const required = 'Обязательное поле';
   static const invalidCapacity = 'Введите корректное количество гостей';
