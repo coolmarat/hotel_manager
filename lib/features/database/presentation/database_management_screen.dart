@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hotel_manager/core/localization/strings.dart';
 import 'package:hotel_manager/features/database/controllers/database_management_controller.dart';
 
 class DatabaseManagementScreen extends ConsumerStatefulWidget {
   const DatabaseManagementScreen({super.key});
 
   @override
-  ConsumerState<DatabaseManagementScreen> createState() => _DatabaseManagementScreenState();
+  ConsumerState<DatabaseManagementScreen> createState() =>
+      _DatabaseManagementScreenState();
 }
 
-class _DatabaseManagementScreenState extends ConsumerState<DatabaseManagementScreen> {
+class _DatabaseManagementScreenState
+    extends ConsumerState<DatabaseManagementScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(databaseManagementControllerProvider);
     final controller = ref.read(databaseManagementControllerProvider.notifier);
-    
+
     // Показываем сообщение об успехе
     if (state.successMessage != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -28,7 +29,7 @@ class _DatabaseManagementScreenState extends ConsumerState<DatabaseManagementScr
         controller.resetMessages();
       });
     }
-    
+
     // Показываем сообщение об ошибке
     if (state.errorMessage != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -46,86 +47,89 @@ class _DatabaseManagementScreenState extends ConsumerState<DatabaseManagementScr
       appBar: AppBar(
         title: const Text('Управление базой данных'),
       ),
-      body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Управление базой данных',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Здесь вы можете экспортировать или импортировать базу данных. '
-                  'Экспорт создаст файл с данными всех комнат, бронирований и клиентов. '
-                  'Импорт заменит все текущие данные на данные из файла.',
-                  style: TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 32),
-                _buildFeatureCard(
-                  context,
-                  title: 'Экспорт базы данных',
-                  description: 'Сохраните все данные в файл для резервного копирования или переноса на другое устройство.',
-                  icon: Icons.upload_file,
-                  onTap: () => controller.exportDatabase(context),
-                ),
-                const SizedBox(height: 16),
-                _buildFeatureCard(
-                  context,
-                  title: 'Импорт базы данных',
-                  description: 'Загрузите данные из файла. Внимание: текущие данные будут заменены!',
-                  icon: Icons.download_rounded,
-                  onTap: () => _showImportConfirmationDialog(context, controller),
-                  color: Colors.orange,
-                ),
-                const SizedBox(height: 16),
-                _buildFeatureCard(
-                  context,
-                  title: 'Очистить базу данных',
-                  description: 'Удалить все данные из базы данных. Внимание: это действие нельзя отменить!',
-                  icon: Icons.delete_forever,
-                  onTap: () => _showClearDatabaseConfirmationDialog(context, controller),
-                  color: Colors.red,
-                ),
-                // const SizedBox(height: 16),
-                // _buildFeatureCard(
-                //   context,
-                //   title: 'Сбросить базу данных к начальному состоянию',
-                //   description: 'Очистить базу данных и добавить стандартные комнаты.',
-                //   icon: Icons.restart_alt,
-                //   onTap: () => _showResetDatabaseConfirmationDialog(context, controller),
-                //   color: Colors.orange,
-                // ),
-                const SizedBox(height: 32),
-                const Text(
-                  'Формат данных',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Данные экспортируются в формате JSON, который содержит информацию о комнатах, '
-                  'бронированиях и клиентах. Файл можно открыть в любом текстовом редакторе, '
-                  'но не рекомендуется вносить изменения вручную, так как это может привести к ошибкам.',
-                  style: TextStyle(fontSize: 16),
-                ),
-              ],
-            ),
-          ),
-          if (state.isLoading)
-            const Center(
+      body: state.isLoading
+          ? const Center(
               child: CircularProgressIndicator(),
+            )
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Управление базой данных',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Здесь вы можете экспортировать или импортировать базу данных. '
+                      'Экспорт создаст файл с данными всех комнат, бронирований и клиентов. '
+                      'Импорт заменит все текущие данные на данные из файла.',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 32),
+                    _buildFeatureCard(
+                      context,
+                      title: 'Экспорт базы данных',
+                      description:
+                          'Сохраните все данные в файл для резервного копирования или переноса на другое устройство.',
+                      icon: Icons.upload_file,
+                      onTap: () => controller.exportDatabase(context),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildFeatureCard(
+                      context,
+                      title: 'Импорт базы данных',
+                      description:
+                          'Загрузите данные из файла. Внимание: текущие данные будут заменены!',
+                      icon: Icons.download_rounded,
+                      onTap: () =>
+                          _showImportConfirmationDialog(context, controller),
+                      color: Colors.orange,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildFeatureCard(
+                      context,
+                      title: 'Очистить базу данных',
+                      description:
+                          'Удалить все данные из базы данных. Внимание: это действие нельзя отменить!',
+                      icon: Icons.delete_forever,
+                      onTap: () => _showClearDatabaseConfirmationDialog(
+                          context, controller),
+                      color: Colors.red,
+                    ),
+                    // const SizedBox(height: 16),
+                    // _buildFeatureCard(
+                    //   context,
+                    //   title: 'Сбросить базу данных к начальному состоянию',
+                    //   description: 'Очистить базу данных и добавить стандартные комнаты.',
+                    //   icon: Icons.restart_alt,
+                    //   onTap: () => _showResetDatabaseConfirmationDialog(context, controller),
+                    //   color: Colors.orange,
+                    // ),
+                    const SizedBox(height: 32),
+                    const Text(
+                      'Формат данных',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Данные экспортируются в формате JSON, который содержит информацию о комнатах, '
+                      'бронированиях и клиентах. Файл можно открыть в любом текстовом редакторе, '
+                      'но не рекомендуется вносить изменения вручную, так как это может привести к ошибкам.',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
             ),
-        ],
-      ),
     );
   }
 
@@ -223,7 +227,7 @@ class _DatabaseManagementScreenState extends ConsumerState<DatabaseManagementScr
       ),
     );
   }
-  
+
   void _showClearDatabaseConfirmationDialog(
     BuildContext context,
     DatabaseManagementController controller,
